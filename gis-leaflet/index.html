@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Peta Leaflet Sukabumi</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <style>
+    .legend {
+      background: white;
+      padding: 8px;
+      font-size: 12px;
+      line-height: 18px;
+      color: #333;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    }
+    .legend i {
+      width: 14px;
+      height: 14px;
+      float: left;
+      margin-right: 6px;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div id="map" style="height:500px;"></div>
+
+  <script>
+    var map = L.map('map').setView([-6.918, 106.927], 14);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    // Load GeoJSON dari file eksternal
+    fetch("data.geojson")
+      .then(res => res.json())
+      .then(data => {
+        L.geoJSON(data, {
+          pointToLayer: function (feature, latlng) {
+            return L.circleMarker(latlng, {
+              radius: 8,
+              fillColor: "red",
+              color: "#fff",
+              weight: 2,
+              opacity: 1,
+              fillOpacity: 0.8
+            });
+          },
+          style: function (feature) {
+            switch (feature.geometry.type) {
+              case 'LineString': return { color: "blue", weight: 3 };
+              case 'Polygon': return { color: "green", weight: 2, fillOpacity: 0.3 };
+            }
+          },
+          onEachFeature: function (feature, layer) {
+            if (feature.properties && feature.properties.name) {
+              layer.bindPopup(feature.properties.name);
+            }
+          }
+        }).addTo(map);
+      });
+
+    // Tambahkan Legend
+    var legend = L.control({ position: "bottomright" });
+
+    legend.onAdd = function (map) {
+      var div = L.DomUtil.create("div", "legend");
+      div.innerHTML += "<b>Keterangan:</b><br>";
+      div.innerHTML += '<i style="background:red"></i> Titik (Point)<br>';
+      div.innerHTML += '<i style="background:blue"></i> Garis (Line)<br>';
+      div.innerHTML += '<i style="background:green"></i> Area (Polygon)<br>';
+      return div;
+    };
+
+    legend.addTo(map);
+  </script>
+</body>
+</html>
